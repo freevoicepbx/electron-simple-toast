@@ -92,10 +92,10 @@ const createWindow = async () => {
         setDisplay();
 
     if(window === null){
-        let _x = display.workAreaSize.width - config.width;
+        let _x = (display.workArea.x + display.workAreaSize.width) - config.width;
         _x -= config.padding.x;
         let _y = config.padding.y;
-        let _h = display.workAreaSize.height - (config.padding.y * 2)
+        let _h = (display.workArea.y + display.workAreaSize.height) - (config.padding.y * 2)
 
         window = new BrowserWindow({
             width: config.width + config.padding.x,
