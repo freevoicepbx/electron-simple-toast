@@ -1,6 +1,6 @@
 {
   "name": "electron-simple-toast",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "simple electron toast notifications",
   "main": "index.js",
   "scripts": {
