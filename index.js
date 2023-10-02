@@ -131,6 +131,7 @@ const checkWindowDestroy = async (event, count) => {
     if(count === 0){
         window.destroy();
         window = null;
+        display = null;
     }
 }
 
