@@ -1,0 +1,98 @@
+:not(input):not(textarea),
+:not(input):not(textarea)::after,
+:not(input):not(textarea)::before {
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: default;
+}
+
+*:focus,
+*:active{
+    outline: none !important;
+}
+
+html, body{
+    padding: 0; margin: 0; overflow: hidden; width: 100%;
+    height: 100%; font-family: 'Arial';
+    /*background: rgba(255, 0, 255, 0.4);*/
+}
+
+body{
+    display: flex; flex-direction: column; align-items: end;
+    justify-content: end; box-sizing: border-box; padding-right: 40px;
+}
+
+.toast{
+    width: 100%; background: #c0c0c0; border-radius: 10px; box-sizing: border-box;
+    margin-top: 10px; position: relative;
+    display: flex; padding: 5px 10px;
+    transform: translateX(30px); opacity: 0;
+}
+
+.toast.show{
+    animation: show 200ms;
+    animation-fill-mode: forwards;
+}
+
+.toast.hide{
+    animation: hide 200ms;
+    animation-fill-mode: forwards;
+}
+
+@keyframes show {
+    0% {transform: translateX(30px); opacity: .5;}
+    100% {transform: translateX(0); opacity: 1;}
+}
+
+@keyframes hide {
+    0% {transform: translateX(0); opacity: 1;}
+    100% {transform: translateX(30px); opacity: 0;}
+}
+
+.toast .icon{
+    height: 100%; display: flex; margin-right: 10px;
+    justify-content: center; align-items: center; float: left;
+}
+
+.toast .content{
+    height: 100%; float: left;
+    display: flex; flex-direction: column; box-sizing: border-box;
+    justify-content: space-evenly;
+}
+
+.toast .content .header,
+.toast .content .message{
+    width: 100%;
+}
+
+.toast .content .header{
+    font-weight: bold;
+}
+
+.toast .content .message{
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: .9;
+    padding-bottom: 3px;
+}
+
+#close{
+    position: absolute; top: 5px; right: 8px;
+    width: 15px; height: 15px; cursor: pointer;
+    transition: 100ms ease;
+}
+
+#close:hover{
+    transform: scale(1.1);
+}
+
+#close svg{
+    width: 100%; cursor: pointer;
+}
+
+#close svg path{
+    cursor: pointer;
+}
