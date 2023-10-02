@@ -3,10 +3,12 @@
 
 ![preview](https://github.com/nicolagrosu/electron-simple-toast/assets/51338517/cbf154d4-8030-4c94-8a8e-88635b7b1b78)
 
-# Installation
-`npm install electron-simple-toast`
+## Installation
+```sh
+npm install electron-simple-toast
+```
 
-# Usage
+## Usage
 
 ```JavaScript
 const toast = require("electron-simple-toast");
@@ -37,7 +39,7 @@ toast.create({
 });
 ```
 
-# Config
+## Config
 
 If `targetWindow` is specified with a `BrowserWindow`, toast notifications will be created on the same display as the specified window. Otherwise, toasts will be created on the main display.
 ```JavaScript
