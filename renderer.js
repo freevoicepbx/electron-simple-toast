@@ -57,8 +57,10 @@ async function createToast(data){
 
 async function showToast(id){
     document.getElementById(id).classList.add("show");
-    await delay(toasts[id].duration);
-    await destroyToast(id);
+    if(toasts[id].duration>0){
+        await delay(toasts[id].duration);
+        await destroyToast(id);
+    }
 }
 
 async function destroyToast(id){
