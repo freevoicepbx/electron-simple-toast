@@ -5,11 +5,11 @@ const path = require("path");
 
 let config = {
     targetWindow: null,
-    width: 300,
+    width: 375,
     height: 80,
     style: {
         fontSize: 17,
-        iconSize: 50
+        iconSize: 32
     },
     padding: {
         x: 40,
@@ -21,21 +21,26 @@ let display = null;
 
 app.whenReady().then(() => {
     ipcMain.handle('checkWindowDestroy', checkWindowDestroy);
-    ipcMain.handle('setIgnoreMouseEvents', (event, data) => {
+    ipcMain.handle('windowClick', windowClick);
+    ipcMain.handle('windowHeight', windowHeight);
+    ipcMain.handle('notify:hide', notifyHide);
+    /*ipcMain.handle('setIgnoreMouseEvents', (event, data) => {
+        console.log('setIgnoreMouseEvents',data);
         if(window !== null){
             if(data === true) window.setIgnoreMouseEvents(true, {forward: true});
             else window.setIgnoreMouseEvents(false);
         }
-    });
+    });*/
 });
 
 const setConfig = (_config) => {
     Object.assign(config, _config)
 }
 
-const create = async ({title = "", message = "", icon= "", background = "#34495e", color = "#fff", duration = 5000}) => {
+const create = async ({id = "", title = "", message = "", icon= "", background = "#34495e", color = "#fff", duration = 5000}) => {
     await createWindow();
     window.webContents.send("create", {
+        id: id,
         title: title,
         message: message,
         duration: duration,
@@ -44,9 +49,16 @@ const create = async ({title = "", message = "", icon= "", background = "#34495e
         color: color,
         height: config.height,
         style: config.style
-    })
+    });
+    window.webContents.openDevTools();
 }
-
+const close = async ({id = ""}) => {
+    if(window){
+        window.webContents.send("close", {
+            id: id
+        });
+    }
+}
 const success = async (title, message, duration) => {
     await create({
         title: title,
@@ -92,14 +104,16 @@ const createWindow = async () => {
         setDisplay();
 
     if(window === null){
+        console.log('new toast win');
         let _x = (display.workArea.x + display.workAreaSize.width) - config.width;
         _x -= config.padding.x;
         let _y = config.padding.y;
         let _h = (display.workArea.y + display.workAreaSize.height) - (config.padding.y * 2)
-
+        console.log('toast createWindow',_x,_y);
         window = new BrowserWindow({
-            width: config.width + config.padding.x,
-            height: _h,
+            width: config.width,
+            height: 0,
+            //useContentSize: true,
             x: _x,
             y: _y,
             frame: false,
@@ -115,15 +129,24 @@ const createWindow = async () => {
                 preload: path.join(__dirname, 'preload.js')
             }
         });
-        window.setIgnoreMouseEvents(true, {forward: true});
+        //window.setIgnoreMouseEvents(true, {forward: true});
         await window.loadFile(path.join(__dirname, 'index.html'));
         await new Promise(resolve => {
             window.once('ready-to-show', async () => {
                 window.show();
-                await delay(200);
+                //console.log('window shown',window.getSize(),window.isVisible())
                 resolve();
             });
         });
+        /*setInterval(function(){
+            if(window){
+                console.log(window.getSize());
+            }
+        },1000);*/
+    }else if(window.webContents.isLoading()){
+        //console.log('toast window still loading');
+        await delayUntil(()=>!window.webContents.isLoading(),100);
+        //console.log('toast window loaded');
     }
 }
 
@@ -132,6 +155,36 @@ const checkWindowDestroy = async (event, count) => {
         window.destroy();
         window = null;
         display = null;
+    }
+}
+
+const windowClick = async (event, data) => {
+    console.log('windowClick',data,config);
+    if(config.targetWindow !== null){
+        console.log('Send windowClick')
+        config.targetWindow.webContents.send('notify:click', data);
+        if (config.targetWindow.isMinimized())
+            config.targetWindow.restore();
+        
+        config.targetWindow.setAlwaysOnTop(true);
+        config.targetWindow.setAlwaysOnTop(false);
+    }
+}
+
+const notifyHide = async (event, data) => {
+    console.log('notifyHide',data,config);
+    if(window !== null){
+        console.log('Send notifyHide')
+        window.webContents.send('notify:hide', data);
+    }
+}
+
+const windowHeight = async (event, data) => {
+    console.log('windowHeight',data,config);
+    if(config.targetWindow !== null){
+        console.log('Got windowHeight',data);
+        window.setSize(375,parseInt(data));
+        window.setContentSize(375,parseInt(data));
     }
 }
 
@@ -147,6 +200,17 @@ function delay(amount){
     return new Promise(resolve => {
         setTimeout(resolve, amount);
     });
+}
+
+function delayUntil(condition, interval){
+    return new Promise((resolve) => {
+        const checkCondition = setInterval(() => {
+          if (condition()) {
+            clearInterval(checkCondition);
+            resolve();
+          }
+        }, interval);
+      });
 }
 
 module.exports.setConfig = setConfig;
