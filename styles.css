@@ -72,11 +72,6 @@ body{
 }
 
 .fvtoast .content .message{
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
     line-height: .9;
     padding-bottom: 3px;
 }

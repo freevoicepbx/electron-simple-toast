@@ -50,7 +50,9 @@ const create = async ({id = "", title = "", message = "", icon= "", background =
         height: config.height,
         style: config.style
     });
-    window.webContents.openDevTools();
+    if(!app.isPackaged){
+        window.webContents.openDevTools();
+    }
 }
 const close = async ({id = ""}) => {
     if(window){
@@ -129,24 +131,21 @@ const createWindow = async () => {
                 preload: path.join(__dirname, 'preload.js')
             }
         });
-        //window.setIgnoreMouseEvents(true, {forward: true});
+        if(config.targetWindow){
+            config.targetWindow.on('close',function(){
+                console.log('close notify window');
+                window.destroy();
+            })
+        }
         await window.loadFile(path.join(__dirname, 'index.html'));
         await new Promise(resolve => {
             window.once('ready-to-show', async () => {
                 window.show();
-                //console.log('window shown',window.getSize(),window.isVisible())
                 resolve();
             });
         });
-        /*setInterval(function(){
-            if(window){
-                console.log(window.getSize());
-            }
-        },1000);*/
     }else if(window.webContents.isLoading()){
-        //console.log('toast window still loading');
         await delayUntil(()=>!window.webContents.isLoading(),100);
-        //console.log('toast window loaded');
     }
 }
 

@@ -3,7 +3,8 @@ let toasts = {'calls': null, 'msgs': null};
 window.electronAPI.onCreate((event, data) => {
     console.log('electronAPI.onCreate');
     if(toasts[data.id]){
-        destroyToast(data.id);
+        updateToast(data);
+        return;
     }
     createToast(data);
 });
@@ -15,9 +16,49 @@ window.electronAPI.onClose((event, data) => {
     }
 });
 
-/*document.body.addEventListener("mouseenter", function (){
-    window.electronAPI.setIgnoreMouseEvents(true);
-});*/
+window.setInterval(function(){
+    var timeAgoEls = document.querySelectorAll(".time-ago");
+    timeAgoEls.forEach((ta) => {
+        ta.innerHTML = timeAgo(ta.dataset.ts);
+    });
+},5000);
+
+function timeAgo(unix_timestamp,short) {
+    var date = new Date(unix_timestamp * 1000);
+    const MINUTE = 60;
+    const HOUR = MINUTE * 60;
+    const DAY = HOUR * 24;
+    const WEEK = DAY * 7;
+    const MONTH = DAY * 30;
+    const YEAR = DAY * 365;
+    const secondsAgo = Math.round((Date.now() - Number(date)) / 1000);
+    if (secondsAgo < MINUTE) {
+        if(short){
+            return secondsAgo + `sec${secondsAgo !== 1 ? "s" : ""}`;
+        }
+        return secondsAgo + ` sec${secondsAgo !== 1 ? "s" : ""} ago`;
+    }
+    let divisor;
+    let unit = "";
+    if (secondsAgo < HOUR) {
+        [divisor, unit] = [MINUTE, "min"];
+    } else if (secondsAgo < DAY) {
+        [divisor, unit] = [HOUR, "hour"];
+    } else if (secondsAgo < WEEK) {
+        [divisor, unit] = [DAY, "day"];
+    } else if (secondsAgo < MONTH) {
+        [divisor, unit] = [WEEK, "week"];
+    } else if (secondsAgo < YEAR) {
+        [divisor, unit] = [MONTH, "month"];
+    } else {
+        [divisor, unit] = [YEAR, "year"];
+    }
+    const count = Math.floor(secondsAgo / divisor);
+    if(short){
+        return `${count}${unit}${count > 1 ? "s" : ""}`;
+    }
+    return `${count} ${unit}${count > 1 ? "s" : ""} ago`;
+}
 
 async function createToast(data){
     console.log('createToast',data)
@@ -78,8 +119,10 @@ async function createToast(data){
     });
 
     document.getElementById(_id).addEventListener("click",function (e){
-        if(e.target.dataset.action){
-            window.electronAPI.windowClick({action: e.target.dataset.action, id: e.target.dataset.id });
+        var p = e.target.closest('a');
+        console.log(e);
+        if(p&&p.dataset.action){
+            window.electronAPI.windowClick({action: p.dataset.action, id: p.dataset.id });
         }
     });
 
@@ -90,7 +133,17 @@ async function createToast(data){
 
     await showToast(_id);
 }
-
+async function updateToast(data){
+    console.log('updateToast',data)
+    let _el = document.querySelector(`#${data.id} .message`);
+    _el.innerHTML = data.message;
+    _el = document.querySelector(`#${data.id} .header`);
+    _el.innerHTML = data.title;
+    var wh = document.body.offsetHeight;
+    console.log('window height',wh);
+    window.electronAPI.windowHeight(wh);
+    await showToast(data.id);
+}
 async function showToast(id){
     document.getElementById(id).classList.add("show");
 	if(toasts[id].duration>0){
