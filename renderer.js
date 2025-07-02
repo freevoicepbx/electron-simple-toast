@@ -60,17 +60,7 @@ function timeAgo(unix_timestamp,short) {
     return `${count} ${unit}${count > 1 ? "s" : ""} ago`;
 }
 
-async function createToast(data){
-    console.log('createToast',data)
-    let _el = document.createElement("div");
-    let _id = data.id;
-
-    _el.classList.add("toast","show");
-    _el.id = _id;
-    //_el.style.background = data.background;
-    //_el.style.height = "fit-content";
-    //_el.style.fontSize = data.style.fontSize+"px";
-    //_el.style.color = data.color;
+function toastHtml(data){
     var innerHTML = `<div class="toast-header">`;
             if(data.id=='calls'){
                 innerHTML+=`<div id="ringer-container" >
@@ -108,7 +98,22 @@ async function createToast(data){
             ${data.message}
         </div>
     `;
-    _el.innerHTML = innerHTML;
+    return innerHTML;
+}
+
+async function createToast(data){
+    console.log('createToast',data)
+    let _el = document.createElement("div");
+    let _id = data.id;
+
+    _el.classList.add("toast","show");
+    _el.id = _id;
+    //_el.style.background = data.background;
+    //_el.style.height = "fit-content";
+    //_el.style.fontSize = data.style.fontSize+"px";
+    //_el.style.color = data.color;
+
+    _el.innerHTML = toastHtml(data);
     document.querySelector('.toast-container').append(_el);
     var wh = document.querySelector('.toast-container').offsetHeight;
     console.log('window height',wh);
@@ -137,13 +142,28 @@ async function createToast(data){
 }
 async function updateToast(data){
     console.log('updateToast',data)
-    let _el = document.querySelector(`#${data.id} .message`);
-    _el.innerHTML = data.message;
-    _el = document.querySelector(`#${data.id} .header`);
-    _el.innerHTML = data.title;
-    var wh = document.body.offsetHeight;
+    let _el = document.querySelector(`#${data.id}`);
+    _el.innerHTML = toastHtml(data);
+
+        document.querySelector('.toast-container').append(_el);
+    var wh = document.querySelector('.toast-container').offsetHeight;
     console.log('window height',wh);
     window.electronAPI.windowHeight(wh);
+
+
+    document.querySelector("#"+data.id+" .btn-close").addEventListener("click", function (){
+        destroyToast(data.id);
+        window.electronAPI.windowClick({action: 'close', id: data.id });
+    });
+
+    document.getElementById(data.id).addEventListener("click",function (e){
+        var p = e.target.closest('a');
+        console.log(e);
+        if(p&&p.dataset.action){
+            window.electronAPI.windowClick({action: p.dataset.action, id: p.dataset.id });
+        }
+    });
+
     await showToast(data.id);
 }
 async function showToast(id){
