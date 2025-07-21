@@ -167,6 +167,7 @@ const windowClick = async (event, data) => {
         
         config.targetWindow.setAlwaysOnTop(true);
         config.targetWindow.setAlwaysOnTop(false);
+        config.targetWindow.focus();
     }
 }
 
