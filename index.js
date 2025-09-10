@@ -37,7 +37,7 @@ const setConfig = (_config) => {
     Object.assign(config, _config)
 }
 
-const create = async ({id = "", title = "", message = "", icon= "", background = "#34495e", color = "#fff", duration = 5000}) => {
+const create = async ({ id = "", title = "", message = "", icon = "", background = "#34495e", color = "#fff", duration = 5000 }) => {
     await createWindow();
     window.webContents.send("create", {
         id: id,
@@ -54,8 +54,8 @@ const create = async ({id = "", title = "", message = "", icon= "", background =
     //    window.webContents.openDevTools();
     //}
 }
-const close = async ({id = ""}) => {
-    if(window){
+const close = async ({ id = "" }) => {
+    if (window) {
         window.webContents.send("close", {
             id: id
         });
@@ -92,7 +92,7 @@ const error = async (title, message, duration) => {
 }
 
 const info = async (title, message, duration) => {
-     await create({
+    await create({
         title: title,
         message: message,
         duration: duration,
@@ -102,16 +102,24 @@ const info = async (title, message, duration) => {
 }
 
 const createWindow = async () => {
-    if(display === null)
+    if (display === null)
         setDisplay();
 
-    if(window === null){
+    if (window === null) {
         console.log('new toast win');
-        let _x = (display.workArea.x + display.workAreaSize.width) - config.width;
-        _x -= config.padding.x;
-        let _y = config.padding.y;
-        let _h = (display.workArea.y + display.workAreaSize.height) - (config.padding.y * 2)
-        console.log('toast createWindow',_x,_y);
+        let _y = 20;
+        let _x = 20;
+        if (!display) {
+            console.log('toast createWindow no display using basic 20x20');
+        } else {
+            console.log('toast createWindow got display');
+            _x = (display.workArea.x + display.workAreaSize.width) - config.width;
+            _x -= config.padding.x;
+            _y = config.padding.y;
+            //let _h = (display.workArea.y + display.workAreaSize.height) - (config.padding.y * 2)
+            console.log(`toast createWindow got display.workArea.x:${display.workArea.x} display.workArea.y:${display.workArea.y} display.workAreaSize.width:${display.workAreaSize.width} display.workAreaSize.height:${display.workAreaSize.height}`);
+        }
+        console.log('toast createWindow', _x, _y);
         window = new BrowserWindow({
             width: config.width,
             height: 0,
@@ -131,10 +139,10 @@ const createWindow = async () => {
                 preload: path.join(__dirname, 'preload.js')
             }
         });
-        if(config.targetWindow){
-            config.targetWindow.on('close',function(){
+        if (config.targetWindow) {
+            config.targetWindow.on('close', function () {
                 console.log('close notify window');
-                if(window){
+                if (window) {
                     window.destroy();
                 }
             })
@@ -146,13 +154,13 @@ const createWindow = async () => {
                 resolve();
             });
         });
-    }else if(window.webContents.isLoading()){
-        await delayUntil(()=>!window.webContents.isLoading(),100);
+    } else if (window.webContents.isLoading()) {
+        await delayUntil(() => !window.webContents.isLoading(), 100);
     }
 }
 
 const checkWindowDestroy = async (event, count) => {
-    if(count === 0){
+    if (count === 0) {
         window.destroy();
         window = null;
         display = null;
@@ -160,13 +168,13 @@ const checkWindowDestroy = async (event, count) => {
 }
 
 const windowClick = async (event, data) => {
-    console.log('windowClick',data,config);
-    if(config.targetWindow !== null){
+    console.log('windowClick', data, config);
+    if (config.targetWindow !== null) {
         console.log('Send windowClick')
         config.targetWindow.webContents.send('notify:click', data);
         if (config.targetWindow.isMinimized())
             config.targetWindow.restore();
-        
+
         config.targetWindow.setAlwaysOnTop(true);
         config.targetWindow.setAlwaysOnTop(false);
         config.targetWindow.focus();
@@ -174,49 +182,49 @@ const windowClick = async (event, data) => {
 }
 
 const notifyHide = async (event, data) => {
-    console.log('notifyHide',data,config);
-    if(window !== null){
+    console.log('notifyHide', data, config);
+    if (window !== null) {
         console.log('Send notifyHide')
         window.webContents.send('notify:hide', data);
     }
 }
 
 const windowHeight = async (event, data) => {
-    console.log('windowHeight',data,config);
-    if(config.targetWindow !== null){
-        console.log('Got windowHeight',data);
-        window.setSize(375,parseInt(data));
-        window.setContentSize(375,parseInt(data));
+    console.log('windowHeight', data, config);
+    if (config.targetWindow !== null) {
+        console.log('Got windowHeight', data);
+        window.setSize(375, parseInt(data));
+        window.setContentSize(375, parseInt(data));
     }
 }
 
 const setDisplay = () => {
-    if(config.targetWindow !== null){
+    if (config.targetWindow !== null) {
         const _winBounds = config.targetWindow.getBounds();
-        display = screen.getDisplayNearestPoint({x: _winBounds.x, y: _winBounds.y});
-        if(!display){
+        display = screen.getDisplayNearestPoint({ x: _winBounds.x, y: _winBounds.y });
+        if (!display) {
             display = screen.getPrimaryDisplay();
         }
-    }else{
+    } else {
         display = screen.getPrimaryDisplay();
     }
 }
 
-function delay(amount){
+function delay(amount) {
     return new Promise(resolve => {
         setTimeout(resolve, amount);
     });
 }
 
-function delayUntil(condition, interval){
+function delayUntil(condition, interval) {
     return new Promise((resolve) => {
         const checkCondition = setInterval(() => {
-          if (condition()) {
-            clearInterval(checkCondition);
-            resolve();
-          }
+            if (condition()) {
+                clearInterval(checkCondition);
+                resolve();
+            }
         }, interval);
-      });
+    });
 }
 
 module.exports.setConfig = setConfig;
