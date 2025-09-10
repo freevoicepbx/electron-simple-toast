@@ -50,9 +50,9 @@ const create = async ({id = "", title = "", message = "", icon= "", background =
         height: config.height,
         style: config.style
     });
-    if(!app.isPackaged){
-        window.webContents.openDevTools();
-    }
+    //if(!app.isPackaged){
+    //    window.webContents.openDevTools();
+    //}
 }
 const close = async ({id = ""}) => {
     if(window){
@@ -134,7 +134,9 @@ const createWindow = async () => {
         if(config.targetWindow){
             config.targetWindow.on('close',function(){
                 console.log('close notify window');
-                window.destroy();
+                if(window){
+                    window.destroy();
+                }
             })
         }
         await window.loadFile(path.join(__dirname, 'index.html'));
@@ -192,8 +194,12 @@ const setDisplay = () => {
     if(config.targetWindow !== null){
         const _winBounds = config.targetWindow.getBounds();
         display = screen.getDisplayNearestPoint({x: _winBounds.x, y: _winBounds.y});
-    }else
+        if(!display){
+            display = screen.getPrimaryDisplay();
+        }
+    }else{
         display = screen.getPrimaryDisplay();
+    }
 }
 
 function delay(amount){
